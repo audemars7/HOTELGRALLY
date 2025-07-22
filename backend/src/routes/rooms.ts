@@ -193,10 +193,11 @@ router.get('/:roomId/availability/:datetime', async (req: Request, res: Response
       // Si hay reserva futura, check-out justo antes
       const nextCheckIn = new Date(nextReservation.checkIn);
       suggestedCheckOut = new Date(nextCheckIn.getTime() - 60000); // 1 minuto antes
-      reason = `Disponible hasta ${nextCheckIn.toLocaleTimeString('es-ES', { 
+      reason = `Disponible hasta ${nextCheckIn.toLocaleTimeString('es-PE', { 
         hour: '2-digit', 
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
+        timeZone: 'America/Lima'
       })}`;
     } else {
       // Sin reservas futuras, usar lógica normal
