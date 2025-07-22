@@ -162,27 +162,16 @@ router.get('/:roomId/availability/:datetime', async (req: Request, res: Response
       });
     }
 
-    // Buscar reservas futuras en el mismo día
-    const sameDayReservations = room.reservations.filter(reservation => {
+    // Buscar reservas futuras que pueden afectar el check-out sugerido
+    // No limitarse solo al mismo día, sino incluir todas las reservas futuras
+    const futureReservations = room.reservations.filter(reservation => {
       const checkIn = new Date(reservation.checkIn);
-      const checkOut = new Date(reservation.checkOut);
-      
-      const targetDay = new Date(targetDate);
-      const checkInDay = new Date(checkIn);
-      const checkOutDay = new Date(checkOut);
-      
-      return (
-        checkInDay.toDateString() === targetDay.toDateString() ||
-        checkOutDay.toDateString() === targetDay.toDateString()
-      );
+      // Incluir todas las reservas que empiecen después de la hora consultada
+      return checkIn > targetDate;
     });
 
     // Encontrar la próxima reserva después de la hora consultada
-    const nextReservation = sameDayReservations
-      .filter(reservation => {
-        const checkIn = new Date(reservation.checkIn);
-        return checkIn > targetDate;
-      })
+    const nextReservation = futureReservations
       .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())[0];
 
     // Calcular check-out sugerido
