@@ -19,19 +19,21 @@ export default function DateSelector({ selectedDateTime, onDateTimeChange, onRes
     const date = new Date(datetime)
     const now = new Date()
     
-    // Verificar si es hoy
+    // Verificar si es hoy (comparar en hora local)
     const isToday = date.toDateString() === now.toDateString()
     
     const formattedDate = date.toLocaleDateString('es-PE', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'America/Lima'
     })
     
     const formattedTime = date.toLocaleTimeString('es-PE', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Lima'
     })
     
     return `${isToday ? 'Hoy' : formattedDate} a las ${formattedTime}`

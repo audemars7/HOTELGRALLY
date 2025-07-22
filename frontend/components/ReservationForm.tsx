@@ -104,12 +104,16 @@ export default function ReservationForm({ rooms, selectedRoom, selectedDateTime,
     
     setLoadingSuggestion(true)
     try {
+      // Convertir checkIn a UTC para la consulta
+      const checkInUTC = new Date(checkIn).toISOString()
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}/availability/${checkIn}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}/availability/${encodeURIComponent(checkInUTC)}`
       )
       const result = await response.json()
       
       if (result.success) {
+        // La respuesta viene en UTC, convertir a formato local para el input
         const suggestedDate = new Date(result.data.suggestedCheckOut)
         const year = suggestedDate.getFullYear()
         const month = String(suggestedDate.getMonth() + 1).padStart(2, '0')
@@ -139,8 +143,15 @@ export default function ReservationForm({ rooms, selectedRoom, selectedDateTime,
     setLoading(true)
     
     try {
-      // Los datos ya están en el formulario
-      const reservationData = data
+      // Convertir las fechas a UTC para enviar al backend
+      const checkInUTC = new Date(data.checkIn).toISOString()
+      const checkOutUTC = new Date(data.checkOut).toISOString()
+      
+      const reservationData = {
+        ...data,
+        checkIn: checkInUTC,
+        checkOut: checkOutUTC
+      }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reservations`, {
         method: 'POST',
