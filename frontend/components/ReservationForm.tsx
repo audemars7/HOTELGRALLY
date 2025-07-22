@@ -343,7 +343,8 @@ export default function ReservationForm({ rooms, selectedRoom, selectedDateTime,
                           day: '2-digit',
                           hour: '2-digit',
                           minute: '2-digit',
-                          hour12: false
+                          hour12: false,
+                          timeZone: 'America/Lima'
                         })}
                       </p>
                       {suggestionReason && (
