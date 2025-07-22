@@ -113,13 +113,14 @@ export default function ReservationForm({ rooms, selectedRoom, selectedDateTime,
       const result = await response.json()
       
       if (result.success) {
-        // La respuesta viene en UTC, convertir a formato local para el input
-        const suggestedDate = new Date(result.data.suggestedCheckOut)
-        const year = suggestedDate.getFullYear()
-        const month = String(suggestedDate.getMonth() + 1).padStart(2, '0')
-        const day = String(suggestedDate.getDate()).padStart(2, '0')
-        const hours = String(suggestedDate.getHours()).padStart(2, '0')
-        const minutes = String(suggestedDate.getMinutes()).padStart(2, '0')
+        // La respuesta viene en UTC, mantener la hora UTC sin convertir a local
+        const suggestedDateUTC = new Date(result.data.suggestedCheckOut)
+        // Obtener los componentes en UTC
+        const year = suggestedDateUTC.getUTCFullYear()
+        const month = String(suggestedDateUTC.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(suggestedDateUTC.getUTCDate()).padStart(2, '0')
+        const hours = String(suggestedDateUTC.getUTCHours()).padStart(2, '0')
+        const minutes = String(suggestedDateUTC.getUTCMinutes()).padStart(2, '0')
         
         const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`
         setSuggestedCheckOut(formattedDate)
