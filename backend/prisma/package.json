@@ -1,0 +1,16 @@
+{
+  "name": "hotel-prisma",
+  "version": "1.0.0",
+  "description": "Prisma configuration for hotel management system",
+  "main": "index.js",
+  "scripts": {
+    "seed": "ts-node seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+} 

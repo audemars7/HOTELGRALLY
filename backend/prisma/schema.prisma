@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  number      Int      @unique
+  type        RoomType
+  price       Float
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  reservations Reservation[]
+
+  @@map("rooms")
+  @@index([isAvailable])
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  dni          String   @unique
+  origin       String   // Procedencia
+  occupation   String?  // Dedicación (opcional)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  reservations Reservation[]
+
+  @@map("clients")
+}
+
+model Reservation {
+  id          String   @id @default(cuid())
+  checkIn     DateTime
+  checkOut    DateTime
+  totalPrice  Float
+  status      ReservationStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("reservations")
+  @@index([roomId, checkIn, checkOut, status])
+  @@index([status, checkIn, checkOut])
+}
+
+enum RoomType {
+  PLAZA_MEDIA  // Plaza 1/2
+  DOS_PLAZAS   // 2 plazas
+  DOBLE        // Doble
+}
+
+enum ReservationStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}

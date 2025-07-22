@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: hotel_postgres
+    environment:
+      POSTGRES_DB: hotel_db
+      POSTGRES_USER: HGRALI_
+      POSTGRES_PASSWORD: GRALI712119
+    ports:
+      - "5432:5432"
