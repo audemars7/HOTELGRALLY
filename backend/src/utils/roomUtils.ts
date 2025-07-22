@@ -12,8 +12,9 @@ export const isRoomOccupiedAt = (reservations: any[], targetDate: Date): boolean
     const checkIn = new Date(reservation.checkIn);
     const checkOut = new Date(reservation.checkOut);
     
-    // La habitación está ocupada si la fecha target está entre check-in y check-out (inclusivo)
-    return targetDate >= checkIn && targetDate <= checkOut;
+    // La habitación está ocupada si la fecha target está entre check-in (inclusivo) y check-out (exclusivo)
+    // Esto significa que en el momento exacto del checkout, la habitación ya está disponible
+    return targetDate >= checkIn && targetDate < checkOut;
   });
 };
 
@@ -54,7 +55,8 @@ export const getRoomsWithOccupancyStatus = async () => {
     const currentReservation = room.reservations.find(reservation => {
       const checkIn = new Date(reservation.checkIn);
       const checkOut = new Date(reservation.checkOut);
-      return now >= checkIn && now <= checkOut;
+      // Usar la misma lógica: inclusivo en check-in, exclusivo en check-out
+      return now >= checkIn && now < checkOut;
     });
 
     // Buscar la próxima reserva si está disponible
@@ -72,13 +74,14 @@ export const getRoomsWithOccupancyStatus = async () => {
       const checkOut = new Date(currentReservation.checkOut);
       additionalInfo = {
         type: 'occupied_until',
-        time: checkOut.toLocaleString('es-ES', { 
+        time: checkOut.toLocaleString('es-PE', { 
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit', 
           minute: '2-digit',
-          hour12: true 
+          hour12: true,
+          timeZone: 'America/Lima'
         })
       };
     } else if (!isOccupied && nextReservation) {
@@ -86,13 +89,14 @@ export const getRoomsWithOccupancyStatus = async () => {
       const checkIn = new Date(nextReservation.checkIn);
       additionalInfo = {
         type: 'available_until',
-        time: checkIn.toLocaleString('es-ES', { 
+        time: checkIn.toLocaleString('es-PE', { 
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit', 
           minute: '2-digit',
-          hour12: true 
+          hour12: true,
+          timeZone: 'America/Lima'
         })
       };
     }
@@ -138,24 +142,21 @@ export const getRoomsAvailabilityForDate = async (targetDate: Date) => {
     // Verificar conflictos con reservas activas
     const hasConflict = isRoomOccupiedAt(room.reservations, targetDate);
 
-    // Buscar reservas futuras en el mismo día
-    const sameDayReservations = room.reservations.filter(reservation => {
+    // Buscar reservas que pueden afectar la hora consultada
+    // Solo incluir reservas que se superponen con el momento consultado o son futuras en el mismo día
+    const relevantReservations = room.reservations.filter(reservation => {
       const checkIn = new Date(reservation.checkIn);
       const checkOut = new Date(reservation.checkOut);
       
-      // Verificar si la reserva es en el mismo día
-      const targetDay = new Date(targetDate);
-      const checkInDay = new Date(checkIn);
-      const checkOutDay = new Date(checkOut);
-      
-      return (
-        checkInDay.toDateString() === targetDay.toDateString() ||
-        checkOutDay.toDateString() === targetDay.toDateString()
-      );
+      // Incluir la reserva si:
+      // 1. La consulta está dentro del rango de la reserva, O
+      // 2. La reserva empieza después de la hora consultada en el mismo día
+      return (targetDate >= checkIn && targetDate < checkOut) || 
+             (checkIn > targetDate && checkIn.toDateString() === targetDate.toDateString());
     });
 
     // Encontrar la próxima reserva después de la hora consultada
-    const nextReservation = sameDayReservations
+    const nextReservation = relevantReservations
       .filter(reservation => {
         const checkIn = new Date(reservation.checkIn);
         return checkIn > targetDate;
@@ -163,11 +164,12 @@ export const getRoomsAvailabilityForDate = async (targetDate: Date) => {
       .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())[0];
 
     // Encontrar la reserva actual si está ocupada
-    const currentReservation = sameDayReservations
+    const currentReservation = relevantReservations
       .filter(reservation => {
         const checkIn = new Date(reservation.checkIn);
         const checkOut = new Date(reservation.checkOut);
-        return targetDate >= checkIn && targetDate <= checkOut;
+        // Usar la misma lógica: inclusivo en check-in, exclusivo en check-out
+        return targetDate >= checkIn && targetDate < checkOut;
       })[0];
 
     let additionalInfo = null;
@@ -177,13 +179,14 @@ export const getRoomsAvailabilityForDate = async (targetDate: Date) => {
       const checkOut = new Date(currentReservation.checkOut);
       additionalInfo = {
         type: 'occupied_until',
-        time: checkOut.toLocaleString('es-ES', { 
+        time: checkOut.toLocaleString('es-PE', { 
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit', 
           minute: '2-digit',
-          hour12: true 
+          hour12: true,
+          timeZone: 'America/Lima'
         })
       };
     } else if (!hasConflict && nextReservation) {
@@ -191,13 +194,14 @@ export const getRoomsAvailabilityForDate = async (targetDate: Date) => {
       const checkIn = new Date(nextReservation.checkIn);
       additionalInfo = {
         type: 'available_until',
-        time: checkIn.toLocaleString('es-ES', { 
+        time: checkIn.toLocaleString('es-PE', { 
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit', 
           minute: '2-digit',
-          hour12: true 
+          hour12: true,
+          timeZone: 'America/Lima'
         })
       };
     }

@@ -114,34 +114,18 @@ router.post('/', createReservationValidation, async (req: Request, res: Response
     const checkOutDate = checkOut ? new Date(checkOut) : calculateCheckOut(checkInDate);
 
     // Verificar si hay conflictos de horario
-    // Una reserva tiene conflicto si:
-    // 1. El nuevo check-in está dentro de una reserva existente
-    // 2. El nuevo check-out está dentro de una reserva existente  
-    // 3. La nueva reserva engloba completamente una reserva existente
+    // Una reserva tiene conflicto si se superpone con una reserva existente
+    // Usamos checkout exclusivo: una reserva está ocupada desde check-in (inclusivo) hasta check-out (exclusivo)
     const conflictingReservations = await prisma.reservation.findMany({
       where: {
         roomId,
         status: 'ACTIVE',
         OR: [
           {
-            // Nuevo check-in está dentro de reserva existente
+            // Nueva reserva empieza antes de que termine una existente Y termina después de que empiece la existente
             AND: [
-              { checkIn: { lte: checkInDate } },
-              { checkOut: { gt: checkInDate } }
-            ]
-          },
-          {
-            // Nuevo check-out está dentro de reserva existente
-            AND: [
-              { checkIn: { lt: checkOutDate } },
-              { checkOut: { gt: checkOutDate } }
-            ]
-          },
-          {
-            // Nueva reserva engloba completamente una reserva existente
-            AND: [
-              { checkIn: { gte: checkInDate } },
-              { checkOut: { lte: checkOutDate } }
+              { checkIn: { lt: checkOutDate } },  // La reserva existente empieza antes de que termine la nueva
+              { checkOut: { gt: checkInDate } }   // La reserva existente termina después de que empiece la nueva
             ]
           }
         ]
