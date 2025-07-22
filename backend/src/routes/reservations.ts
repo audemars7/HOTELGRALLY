@@ -109,6 +109,7 @@ router.post('/', createReservationValidation, async (req: Request, res: Response
     }
 
     // Convertir checkIn y checkOut a Date
+    // Las fechas vienen en formato ISO UTC desde el frontend
     const checkInDate = new Date(checkIn);
     const checkOutDate = checkOut ? new Date(checkOut) : calculateCheckOut(checkInDate);
 

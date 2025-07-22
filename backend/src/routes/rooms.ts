@@ -100,6 +100,7 @@ router.get('/available/status', async (req: Request, res: Response) => {
 router.get('/available/date/:datetime', async (req: Request, res: Response) => {
   try {
     const { datetime } = req.params;
+    // La fecha viene en formato ISO UTC desde el frontend
     const targetDate = new Date(datetime);
 
     if (isNaN(targetDate.getTime())) {
@@ -130,6 +131,7 @@ router.get('/available/date/:datetime', async (req: Request, res: Response) => {
 router.get('/:roomId/availability/:datetime', async (req: Request, res: Response) => {
   try {
     const { roomId, datetime } = req.params;
+    // La fecha viene en formato ISO UTC desde el frontend
     const targetDate = new Date(datetime);
     
     if (isNaN(targetDate.getTime())) {
