@@ -8,6 +8,7 @@ const nextConfig = {
   },
   poweredByHeader: false,
   compress: true,
+  output: 'export',
   async headers() {
     return [
       {
