@@ -179,9 +179,9 @@ router.get('/:roomId/availability/:datetime', async (req: Request, res: Response
     let reason: string;
 
     if (nextReservation) {
-      // Si hay reserva futura, check-out justo antes
+      // Si hay reserva futura, check-out justo antes (1 minuto antes)
       const nextCheckIn = new Date(nextReservation.checkIn);
-      suggestedCheckOut = new Date(nextCheckIn.getTime() - 60000); // 1 minuto antes
+      suggestedCheckOut = new Date(nextCheckIn.getTime() - 60000);
       reason = `Disponible hasta ${nextCheckIn.toLocaleTimeString('es-PE', { 
         hour: '2-digit', 
         minute: '2-digit',
@@ -189,17 +189,30 @@ router.get('/:roomId/availability/:datetime', async (req: Request, res: Response
         timeZone: 'America/Lima'
       })}`;
     } else {
-      // Sin reservas futuras, usar lógica normal
-      // Convertir la hora UTC a hora local de Lima para aplicar las reglas correctas
-      const checkInLima = new Date(targetDate.toLocaleString("en-US", {timeZone: "America/Lima"}));
-      const checkInHour = checkInLima.getHours();
+      // Sin reservas futuras, usar lógica estándar
+      // Para aplicar reglas de negocio, necesitamos la hora en Lima
+      const targetDateLima = new Date(targetDate.toLocaleString("en-US", {timeZone: "America/Lima"}));
+      const checkInHour = targetDateLima.getHours();
       
       if (checkInHour >= 0 && checkInHour <= 5) {
-        // Check-in entre 12:00 AM y 5:59 AM → Check-out a las 12:59 PM del mismo día
-        suggestedCheckOut = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 12, 59, 0);
+        // Check-in entre 00:00-05:59 AM Lima → Check-out 12:59 PM mismo día Lima
+        // Calcular en Lima y luego convertir a UTC
+        const year = targetDateLima.getFullYear();
+        const month = targetDateLima.getMonth(); 
+        const day = targetDateLima.getDate();
+        const checkOutLima = new Date(year, month, day, 12, 59, 0);
+        
+        // Ajustar por diferencia horaria Lima-UTC (-5 horas)
+        suggestedCheckOut = new Date(checkOutLima.getTime() + (5 * 60 * 60 * 1000));
       } else {
-        // Check-in entre 6:00 AM y 11:59 PM → Check-out a las 12:59 PM del día siguiente
-        suggestedCheckOut = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1, 12, 59, 0);
+        // Check-in entre 06:00-23:59 Lima → Check-out 12:59 PM día siguiente Lima  
+        const year = targetDateLima.getFullYear();
+        const month = targetDateLima.getMonth();
+        const day = targetDateLima.getDate();
+        const checkOutLima = new Date(year, month, day + 1, 12, 59, 0);
+        
+        // Ajustar por diferencia horaria Lima-UTC (-5 horas)
+        suggestedCheckOut = new Date(checkOutLima.getTime() + (5 * 60 * 60 * 1000));
       }
       reason = 'Check-out estándar (sin reservas futuras)';
     }
