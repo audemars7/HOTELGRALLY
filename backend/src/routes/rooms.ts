@@ -190,7 +190,9 @@ router.get('/:roomId/availability/:datetime', async (req: Request, res: Response
       })}`;
     } else {
       // Sin reservas futuras, usar lógica normal
-      const checkInHour = targetDate.getHours();
+      // Convertir la hora UTC a hora local de Lima para aplicar las reglas correctas
+      const checkInLima = new Date(targetDate.toLocaleString("en-US", {timeZone: "America/Lima"}));
+      const checkInHour = checkInLima.getHours();
       
       if (checkInHour >= 0 && checkInHour <= 5) {
         // Check-in entre 12:00 AM y 5:59 AM → Check-out a las 12:59 PM del mismo día
